@@ -48,6 +48,8 @@ const TAX_KEYWORDS = [
   'withholding', 'deduction', 'credit', 'irs', 'withheld', 'employer',
   'spouse', 'household', 'form', 'box', 'amount', 'salary', 'pay',
   'ira', '401k', '401(k)', 'hsa',
+  // Filing-status abbreviations the orchestrator may offer as quick answers.
+  'mfj', 'mfs', 'hoh', 'jointly', 'separately', 'head of household',
 ];
 
 // Mapping of short confirmations / answers that are always on-topic.
