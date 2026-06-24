@@ -9,8 +9,13 @@ has a short, friendly conversation (≤ 5 questions), and downloads a finished
 
 ## Live URL
 
-**→ See `DEPLOY.md` / the submission for the public URL.** A judge can open it,
-click *Send*, say "use the sample", answer two questions, and download the 1040.
+**→ https://tiutni-tax-assistant.onrender.com**
+
+A judge can open it, click *Send*, say "use the sample", answer two questions
+(filing status + dependents), and download the completed 1040.
+
+> Hosted on Render's free tier, which sleeps after inactivity — the **first
+> request after idle takes ~30–50s to cold-start**, then it's fast.
 
 ## One-command local run
 
