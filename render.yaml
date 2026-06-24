@@ -1,0 +1,16 @@
+# Render blueprint — deploys the tax-filing assistant as a Docker web service
+# on the free tier. The app needs no secrets to run (the LLM is optional and
+# only adds conversational warmth); set OPENROUTER_API_KEY to enable it.
+services:
+  - type: web
+    name: tiutni-tax-assistant
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # Optional: set in the Render dashboard to enable LLM-phrased warmth.
+      # - key: OPENROUTER_API_KEY
+      #   sync: false
