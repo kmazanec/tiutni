@@ -5,52 +5,280 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Tax-Filing Assistant — 2025 Form 1040</title>
     <style>
-      :root { color-scheme: light dark; }
+      :root {
+        color-scheme: light dark;
+        --bg: #f8faf9;
+        --surface: #ffffff;
+        --border: #cbd5d0;
+        --text: #1e2d2b;
+        --text-muted: #5b6b67;
+        --accent: #0d7b5f;
+        --accent-fg: #ffffff;
+        --agent-bg: #e8f0ed;
+        --agent-fg: #1e2d2b;
+        --user-bg: #0d7b5f;
+        --user-fg: #ffffff;
+        --download-bg: #1a9e6b;
+        --danger: #c22;
+        --shadow: 0 1px 3px rgba(0,0,0,.06);
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #1a2220;
+          --surface: #212d2a;
+          --border: #3a4a45;
+          --text: #dce4e0;
+          --text-muted: #8fa39c;
+          --accent: #2fb58a;
+          --accent-fg: #0e1f19;
+          --agent-bg: #2a3a35;
+          --agent-fg: #dce4e0;
+          --user-bg: #2fb58a;
+          --user-fg: #0e1f19;
+          --download-bg: #2fb58a;
+          --shadow: 0 1px 3px rgba(0,0,0,.25);
+        }
+      }
       * { box-sizing: border-box; }
       body {
-        font: 15px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
-        margin: 0; display: grid; grid-template-columns: 1fr 360px; height: 100vh;
+        font: 15px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        margin: 0;
+        display: grid;
+        grid-template-columns: 1fr 340px;
+        grid-template-rows: auto 1fr;
+        height: 100vh;
+        background: var(--bg);
+        color: var(--text);
       }
-      @media (max-width: 800px) { body { grid-template-columns: 1fr; } #observe { display: none; } }
-      header { grid-column: 1 / -1; padding: 12px 16px; border-bottom: 1px solid #8884; }
-      h1 { font-size: 16px; margin: 0; }
-      #chat { display: flex; flex-direction: column; min-height: 0; }
-      #log { flex: 1; overflow-y: auto; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-      .msg { max-width: 80%; padding: 8px 12px; border-radius: 10px; white-space: pre-wrap; }
-      .user { align-self: flex-end; background: #2563eb; color: #fff; }
-      .agent { align-self: flex-start; background: #8882; }
-      #composer { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid #8884; }
-      #composer input { flex: 1; padding: 8px; font: inherit; }
-      button { padding: 8px 14px; font: inherit; cursor: pointer; }
-      #observe { border-left: 1px solid #8884; overflow-y: auto; padding: 12px; }
-      #observe h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .05em; opacity: .7; }
-      .ev { font-size: 12px; padding: 6px 0; border-bottom: 1px dotted #8884; }
-      .ev .t { opacity: .6; }
-      #download { display: none; margin: 0 16px 12px; }
-      a.dl { display: inline-block; padding: 8px 14px; background: #16a34a; color: #fff; text-decoration: none; border-radius: 8px; }
-      #uploadbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 16px; border-top: 1px solid #8884; font-size: 13px; }
-      #uploadbar .lbl { opacity: .7; }
-      #uploadbar input[type=file] { font: inherit; max-width: 200px; }
+      @media (max-width: 800px) {
+        body { grid-template-columns: 1fr; }
+        #observe { display: none; }
+      }
+
+      /* ── header ───────────────────────────────────────────────────────── */
+      header {
+        grid-column: 1 / -1;
+        padding: 14px 20px;
+        border-bottom: 1px solid var(--border);
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+      }
+      header h1 {
+        font-size: 18px;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      header .subtitle {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin: 0;
+      }
+      header .disclaimer {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin: 0;
+        font-style: italic;
+      }
+
+      /* ── chat area ────────────────────────────────────────────────────── */
+      #chat {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        background: var(--bg);
+      }
+      #log {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      .msg {
+        max-width: 78%;
+        padding: 10px 16px;
+        border-radius: 18px;
+        line-height: 1.55;
+        word-wrap: break-word;
+        animation: fadeIn .2s ease;
+      }
+      @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+      .user {
+        align-self: flex-end;
+        background: var(--user-bg);
+        color: var(--user-fg);
+        border-bottom-right-radius: 6px;
+      }
+      .agent {
+        align-self: flex-start;
+        background: var(--agent-bg);
+        color: var(--agent-fg);
+        border-bottom-left-radius: 6px;
+      }
+      .agent strong { color: var(--accent); }
+      .agent ul, .agent ol { margin: 6px 0; padding-left: 20px; }
+      .agent li { margin: 2px 0; }
+      .agent table {
+        border-collapse: collapse;
+        margin: 6px 0;
+        width: 100%;
+        font-size: 13px;
+      }
+      .agent th, .agent td {
+        border: 1px solid var(--border);
+        padding: 4px 8px;
+        text-align: left;
+      }
+      .agent th { background: var(--agent-bg); font-weight: 600; }
+
+      /* ── composer ─────────────────────────────────────────────────────── */
+      #composer {
+        display: flex;
+        gap: 8px;
+        padding: 12px 20px;
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+      }
+      #composer input {
+        flex: 1;
+        padding: 10px 14px;
+        font: inherit;
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        outline: none;
+        background: var(--bg);
+        color: var(--text);
+        transition: border-color .15s;
+      }
+      #composer input:focus { border-color: var(--accent); }
+
+      /* ── buttons ──────────────────────────────────────────────────────── */
+      button {
+        padding: 8px 18px;
+        font: inherit;
+        font-weight: 500;
+        cursor: pointer;
+        border: 1px solid var(--border);
+        border-radius: 22px;
+        background: var(--surface);
+        color: var(--text);
+        transition: background .15s, border-color .15s;
+        white-space: nowrap;
+      }
+      button:hover { background: var(--agent-bg); }
+      button.primary {
+        background: var(--accent);
+        color: var(--accent-fg);
+        border-color: var(--accent);
+      }
+      button.primary:hover { filter: brightness(1.08); }
+
+      /* ── download CTA ─────────────────────────────────────────────────── */
+      #download {
+        display: none;
+        margin: 0 20px 12px;
+        text-align: center;
+      }
+      a.dl {
+        display: inline-block;
+        padding: 12px 24px;
+        background: var(--download-bg);
+        color: #fff;
+        text-decoration: none;
+        border-radius: 24px;
+        font-weight: 600;
+        font-size: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,.12);
+        transition: filter .15s, box-shadow .15s;
+      }
+      a.dl:hover { filter: brightness(1.1); box-shadow: 0 4px 14px rgba(0,0,0,.18); }
+
+      /* ── upload bar ───────────────────────────────────────────────────── */
+      #uploadbar {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        padding: 10px 20px;
+        border-top: 1px solid var(--border);
+        background: var(--surface);
+        font-size: 13px;
+      }
+      #uploadbar .lbl {
+        color: var(--text-muted);
+        font-weight: 500;
+        margin-right: 4px;
+      }
+      #uploadbar input[type=file] {
+        font: inherit;
+        max-width: 200px;
+        color: var(--text);
+      }
+
+      /* ── observation trail sidebar ────────────────────────────────────── */
+      #observe {
+        border-left: 1px solid var(--border);
+        overflow-y: auto;
+        padding: 16px;
+        background: var(--surface);
+        box-shadow: var(--shadow);
+        grid-row: 2;
+      }
+      #observe h2 {
+        font-size: 12px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--text-muted);
+        margin: 0 0 12px;
+      }
+      .ev {
+        font-size: 12px;
+        padding: 8px 0;
+        border-bottom: 1px solid var(--border);
+        line-height: 1.5;
+      }
+      .ev .t {
+        display: inline-block;
+        font-weight: 600;
+        color: var(--accent);
+        margin-right: 6px;
+        min-width: 56px;
+        text-transform: uppercase;
+        font-size: 10px;
+        letter-spacing: .04em;
+      }
     </style>
   </head>
   <body>
-    <header><h1>$ tax-filing assistant — 2025 Form 1040</h1></header>
+    <header>
+      <h1>🧾 Tax-Filing Assistant <span style="font-weight:400;font-size:14px;opacity:.75;">— 2025 Form 1040</span></h1>
+      <p class="subtitle">Chat your way to a completed 1040. Upload your W-2 and answer a few simple questions.</p>
+      <p class="disclaimer">⚠ This is a demo using synthetic test data. Not tax or legal advice.</p>
+    </header>
     <section id="chat">
       <div id="log"></div>
       <div id="download"><a class="dl" id="dl" href="#">⬇ Download your completed 1040</a></div>
       <div id="uploadbar">
-        <span class="lbl">W-2 PDF:</span>
+        <span class="lbl">📎 W-2 PDF:</span>
         <input type="file" id="w2file" accept=".pdf,application/pdf" />
-        <button type="button" id="uploadBtn">Upload</button>
+        <button type="button" id="uploadBtn" class="primary">Upload</button>
         <button type="button" id="sampleBtn">Try the sample PDF</button>
       </div>
       <form id="composer">
         <input id="input" autocomplete="off" placeholder="Say hi to get started…" />
-        <button type="submit">Send</button>
+        <button type="submit" class="primary">Send</button>
       </form>
     </section>
     <aside id="observe">
-      <h2>Observation trail</h2>
+      <h2>📋 Activity</h2>
       <div id="events"></div>
     </aside>
     <script src="/app.js" type="module"></script>

@@ -12,13 +12,58 @@ const dl = document.getElementById('dl');
 let sessionId = null;
 let lastSeq = 0;
 
+// ── tiny inline markdown renderer (bold, lists, tables only) ───────────────
+
+function renderMarkdown(text) {
+  let html = escapeHtml(text);
+
+  // bold: **text** or __text__
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/__(.+?)__/g, '<strong>$1</strong>');
+
+  // unordered lists: lines starting with - or * followed by space
+  html = html.replace(/^([ \t]*)[-*] (.+)$/gm, '$1<li>$2</li>');
+  html = html.replace(/((?:<li>.*<\/li>\n?)+)/g, '<ul>$1</ul>');
+
+  // ordered lists: lines starting with 1. 2. etc.
+  html = html.replace(/^([ \t]*)\d+\. (.+)$/gm, '$1<li>$2</li>');
+
+  // tables: pipe-delimited rows
+  if (html.includes('|')) {
+    html = html.replace(/^(\|.+\|)$/gm, (row) => {
+      const cells = row.split('|').filter(c => c.trim() !== '');
+      const isHeader = /^[\s:-]+$/.test(cells[0] || '');
+      if (isHeader) return ''; // skip separator row
+      const tag = /^[-=]+$/.test(row.replace(/\|/g, '').trim()) ? '' : 'td';
+      const firstRow = !html.includes('<table>');
+      const cellTag = firstRow ? 'th' : 'td';
+      return '<tr>' + cells.map(c => `<${cellTag}>${c.trim()}</${cellTag}>`).join('') + '</tr>';
+    });
+    html = html.replace(/((?:<tr>.*<\/tr>\n?)+)/g, '<table>$1</table>');
+  }
+
+  return html;
+}
+
+function escapeHtml(s) {
+  return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+}
+
+// ── bubble rendering ────────────────────────────────────────────────────────
+
 function bubble(role, text) {
   const div = document.createElement('div');
   div.className = `msg ${role}`;
-  div.textContent = text;
+  if (role === 'agent') {
+    div.innerHTML = renderMarkdown(text);
+  } else {
+    div.textContent = text;
+  }
   log.appendChild(div);
   log.scrollTop = log.scrollHeight;
 }
+
+// ── server communication ────────────────────────────────────────────────────
 
 async function pollTrace() {
   if (!sessionId) return;
@@ -33,10 +78,6 @@ async function pollTrace() {
     events.appendChild(div);
   }
   events.scrollTop = events.scrollHeight;
-}
-
-function escapeHtml(s) {
-  return s.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
 }
 
 function handleTurn(data) {
