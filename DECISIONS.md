@@ -44,8 +44,8 @@ Both demonstrate the four pillars.
 | Language / framework | TypeScript + Express, zero front-end framework | Smallest legible surface; the brief says don't spend effort on UI polish. |
 | LLM use | Deterministic state machine for **control**; LLM only for **warmth/paraphrase**, and optional | Guardrails and the 5-question budget must be *enforced and visible*, not "in the prompt." The math must be exact. The app runs with **no API key** (static warm copy) so a judge can always reach it. |
 | Tax computation | Hand-coded 2025 brackets, standard deduction, and CTC/ODC; pure & unit-tested | A ~$40k single-W-2 return is fully determinable; exactness beats an LLM guess. Tests pin the sample W-2's numbers. |
-| The 1040 file | Rendered to PDF with `pdf-lib` | A real, openable PDF with every computed line; no external service, no IRS-form scraping fragility. |
-| W-2 input | A realistic fake W-2 (the provided sample) selectable in chat, plus a paste-parser | No real PII; the parser also exercises the messy-input guardrail (stretch goal). |
+| The 1040 file | Fills the **actual official IRS 2025 Form 1040** (vendored `src/assets/f1040-2025.pdf`) via its AcroForm fields, then flattens | The download is the genuine IRS document, not a facsimile. Field→line map verified by rendering. Falls back to a self-drawn facsimile only if the template can't load. |
+| W-2 input | Three ways: **upload the W-2 PDF**, paste the text, or use the built-in sample | PDF upload extracts the text layer with `pdf-parse` (layout-tolerant — the real form concatenates the box-1/box-2 values). A "Try the sample PDF" button uploads the bundled sample so a judge can test upload in-browser. No real PII. |
 | Filing status | single / MFJ / MFS / HoH all supported | The brief requires changing inputs by filing status. |
 | State / sessions | In-memory, per-session | Single-instance prototype; no PII at rest; sessions evaporate on restart. |
 | Hosting | Render (Docker) — free tier | Asked for by the brief; one Dockerfile, publicly reachable. |

@@ -11,8 +11,10 @@ has a short, friendly conversation (≤ 5 questions), and downloads a finished
 
 **→ https://tiutni-tax-assistant.onrender.com**
 
-A judge can open it, click *Send*, say "use the sample", answer two questions
-(filing status + dependents), and download the completed 1040.
+A judge can open it, click **"Try the sample PDF"** (or upload a W-2 PDF, or say
+"use the sample"), answer two questions (filing status + dependents), and
+download the completed return — which is the **actual official IRS 2025 Form
+1040** with the figures filled in.
 
 > Hosted on Render's free tier, which sleeps after inactivity — the **first
 > request after idle takes ~30–50s to cold-start**, then it's fast.
@@ -38,7 +40,7 @@ npm install && npm test     # 120 tests: engine, W-2, guardrails, orchestrator, 
 | Pillar | Where | What's enforced |
 |---|---|---|
 | **Chat loop / state** | `src/agent/orchestrator.ts`, `src/server/sessions.ts` | An explicit `phase` state machine + per-session slots carried across turns. |
-| **Tools** | `src/tax/w2.ts`, `src/tax/engine.ts`, `src/form/fill1040.ts` | Real actions: parse/validate a W-2, compute the return, render the 1040 PDF. |
+| **Tools** | `src/tax/w2.ts`, `src/tax/w2pdf.ts`, `src/tax/engine.ts`, `src/form/fill1040.ts` | Real actions: parse a W-2 from pasted text **or an uploaded PDF**, validate it, compute the return, and fill the **official IRS 1040 PDF**. |
 | **Guardrails** | `src/agent/guardrails.ts` | **Code-enforced:** hard 5-question counter; advice/off-topic redirect; W-2 range+schema validation; standing "no advice, not filed" refusal. |
 | **Observation** | `src/observe/trace.ts` + the UI panel | Append-only per-session trace of every turn, tool call, guardrail decision, and computed line — shown live in the right-hand panel and mirrored to logs. |
 

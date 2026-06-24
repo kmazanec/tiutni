@@ -63,3 +63,26 @@ direct answer mid-flow isn't second-guessed.
 **Net:** a two-layer harness. corellia is the *build-time* agent harness; the tax
 assistant is the *run-time* agent harness. Both demonstrate the four pillars, and
 the factory's event log is itself an observation trail of the build.
+
+## Later iterations (W-2 PDF upload + real IRS form)
+
+Two follow-on features were commissioned the same way (`live:tiutni` with focused
+`TIUTNI_FEATURE`/`TIUTNI_SCOPE`):
+
+- **W-2 PDF upload** — the factory blocked (`step-loop:failed`, ~$0.17) before
+  writing durable code, so the parser + UI were hand-built. The hard part was
+  discovered first by hand: `pdf-parse` must be imported via its inner module,
+  and the sample form's text layer concatenates the box-1/box-2 values
+  (`44629.357631.62`), so the extractor splits on the two-decimal currency
+  pattern. Verified against the real sample PDF.
+- **Filling the ACTUAL IRS 2025 Form 1040** — the official fillable PDF was
+  downloaded from irs.gov and vendored. Its AcroForm uses opaque positional field
+  names (`f1_47` = line 1a, etc.), so the field→line map was derived and
+  **verified by rendering** the filled form and eyeballing every line before
+  trusting it. This verification-first approach is exactly why it was hand-built
+  rather than commissioned blind: a transposed field silently puts money on the
+  wrong line.
+
+The pattern holds: commission first, and where the factory stalls, record the
+stuck point and hand-build the stuck part the way the factory would — tested,
+observable, verified.
