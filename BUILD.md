@@ -47,9 +47,10 @@ a partial integration — exactly the bounded behavior you want. Cost of the run
 
 The three delivered modules were merged onto `main`
 (`38dbb2a`, merge `e4ae26d`) — **111 of the repo's tests came straight from the
-factory.** Their quality is high: the engine's 2025 figures match Rev. Proc.
-2024-40, and it ships a test asserting the sample W-2's exact result (taxable
-$29,629 → tax $3,317 → refund $4,315).
+factory.** Their quality is high: the engine's 2025 brackets match Rev. Proc.
+2024-40, and it ships a test asserting the sample W-2's exact result. The
+standard deduction constants were later corrected for tax year 2025, bringing
+the sample result to taxable $28,879 → tax $3,227 → refund $4,405.
 
 ## The hand-off
 

@@ -58,19 +58,19 @@ describe('sample W-2 (Elizabeth Darling, single, 0 dependents)', () => {
     expect(result.adjustedGrossIncome).toBe(44_629);
   });
 
-  it('standard deduction for single is $15,000', () => {
-    expect(result.standardDeduction).toBe(15_000);
+  it('standard deduction for single is $15,750', () => {
+    expect(result.standardDeduction).toBe(15_750);
   });
 
   it('taxable income is AGI minus standard deduction', () => {
-    // 44629 - 15000 = 29629
-    expect(result.taxableIncome).toBe(29_629);
+    // 44629 - 15750 = 28879
+    expect(result.taxableIncome).toBe(28_879);
   });
 
   it('tax is computed from 2025 brackets', () => {
-    // 29629 taxable: first 11925 @ 10% = 1192.50, remaining 17704 @ 12% = 2124.48
-    // total = 3316.98, rounded = 3317
-    expect(result.tax).toBe(3_317);
+    // 28879 taxable: first 11925 @ 10% = 1192.50, remaining 16954 @ 12% = 2034.48
+    // total = 3226.98, rounded = 3227
+    expect(result.tax).toBe(3_227);
   });
 
   it('no dependent credit', () => {
@@ -78,16 +78,16 @@ describe('sample W-2 (Elizabeth Darling, single, 0 dependents)', () => {
   });
 
   it('tax after credits equals tax', () => {
-    expect(result.taxAfterCredits).toBe(3_317);
+    expect(result.taxAfterCredits).toBe(3_227);
   });
 
   it('total tax equals tax after credits', () => {
-    expect(result.totalTax).toBe(3_317);
+    expect(result.totalTax).toBe(3_227);
   });
 
   it('refund is withholding minus total tax', () => {
-    // 7632 - 3317 = 4315
-    expect(result.refund).toBe(4_315);
+    // 7632 - 3227 = 4405
+    expect(result.refund).toBe(4_405);
   });
 
   it('amount owed is zero since withholding exceeds tax', () => {
@@ -108,24 +108,24 @@ describe('sample W-2 (Elizabeth Darling, single, 0 dependents)', () => {
 // ---------------------------------------------------------------------------
 
 describe('standard deductions', () => {
-  it('single: $15,000', () => {
+  it('single: $15,750', () => {
     const r = computeReturn(makeInput({ filingStatus: 'single' }));
-    expect(r.standardDeduction).toBe(15_000);
+    expect(r.standardDeduction).toBe(15_750);
   });
 
-  it('married filing jointly: $30,000', () => {
+  it('married filing jointly: $31,500', () => {
     const r = computeReturn(makeInput({ filingStatus: 'married_filing_jointly' }));
-    expect(r.standardDeduction).toBe(30_000);
+    expect(r.standardDeduction).toBe(31_500);
   });
 
-  it('married filing separately: $15,000', () => {
+  it('married filing separately: $15,750', () => {
     const r = computeReturn(makeInput({ filingStatus: 'married_filing_separately' }));
-    expect(r.standardDeduction).toBe(15_000);
+    expect(r.standardDeduction).toBe(15_750);
   });
 
-  it('head of household: $22,500', () => {
+  it('head of household: $23,625', () => {
     const r = computeReturn(makeInput({ filingStatus: 'head_of_household' }));
-    expect(r.standardDeduction).toBe(22_500);
+    expect(r.standardDeduction).toBe(23_625);
   });
 });
 
@@ -136,25 +136,25 @@ describe('standard deductions', () => {
 describe('dependent standard deduction', () => {
   it('defaults to normal deduction when not a dependent', () => {
     const r = computeReturn(makeInput({ canBeClaimedAsDependent: false }));
-    expect(r.standardDeduction).toBe(15_000); // single
+    expect(r.standardDeduction).toBe(15_750); // single
   });
 
-  it('uses greater of $1,300 or earned income + $450 when a dependent', () => {
+  it('uses greater of $1,350 or earned income + $450 when a dependent', () => {
     const r = computeReturn(makeInput({
       canBeClaimedAsDependent: true,
       w2: { ...SAMPLE_W2, wages: 10_000 },
     }));
-    // 10000 + 450 = 10450, which is > 1300, so 10450 (capped at 15000)
+    // 10000 + 450 = 10450, which is > 1350, so 10450 (capped at 15750)
     expect(r.standardDeduction).toBe(10_450);
   });
 
-  it('uses $1,300 floor when earned income is very low', () => {
+  it('uses $1,350 floor when earned income is very low', () => {
     const r = computeReturn(makeInput({
       canBeClaimedAsDependent: true,
       w2: { ...SAMPLE_W2, wages: 500 },
     }));
-    // 500 + 450 = 950, which is < 1300, so floor of 1300
-    expect(r.standardDeduction).toBe(1_300);
+    // 500 + 450 = 950, which is < 1350, so floor of 1350
+    expect(r.standardDeduction).toBe(1_350);
   });
 
   it('caps at the normal deduction for the filing status', () => {
@@ -162,8 +162,8 @@ describe('dependent standard deduction', () => {
       canBeClaimedAsDependent: true,
       w2: { ...SAMPLE_W2, wages: 50_000 },
     }));
-    // 50000 + 450 = 50450, but capped at 15000 (single)
-    expect(r.standardDeduction).toBe(15_000);
+    // 50000 + 450 = 50450, but capped at 15750 (single)
+    expect(r.standardDeduction).toBe(15_750);
   });
 });
 
@@ -182,8 +182,8 @@ describe('tax bracket calculations', () => {
 
   it('single, taxable at top of 10% bracket', () => {
     // 11925 @ 10% = 1192.50 → 1193
-    const w2: W2 = { ...SAMPLE_W2, wages: 11_925 + 15_000, federalIncomeTaxWithheld: 0 };
-    // wages = 26925, std = 15000, taxable = 11925
+    const w2: W2 = { ...SAMPLE_W2, wages: 11_925 + 15_750, federalIncomeTaxWithheld: 0 };
+    // wages = 27675, std = 15750, taxable = 11925
     const r = computeReturn(makeInput({ w2 }));
     expect(r.taxableIncome).toBe(11_925);
     expect(r.tax).toBe(1_193);
@@ -191,7 +191,7 @@ describe('tax bracket calculations', () => {
 
   it('single, taxable in 12% bracket', () => {
     // taxable = 20000: 11925 @ 10% = 1192.50, 8075 @ 12% = 969.00, total = 2161.50 → 2162
-    const w2: W2 = { ...SAMPLE_W2, wages: 20_000 + 15_000, federalIncomeTaxWithheld: 0 };
+    const w2: W2 = { ...SAMPLE_W2, wages: 20_000 + 15_750, federalIncomeTaxWithheld: 0 };
     const r = computeReturn(makeInput({ w2 }));
     expect(r.taxableIncome).toBe(20_000);
     expect(r.tax).toBe(2_162);
@@ -199,7 +199,7 @@ describe('tax bracket calculations', () => {
 
   it('single, taxable at top of 12% bracket', () => {
     // taxable = 48475: 11925 @ 10% = 1192.50, 36550 @ 12% = 4386.00, total = 5578.50 → 5579
-    const w2: W2 = { ...SAMPLE_W2, wages: 48_475 + 15_000, federalIncomeTaxWithheld: 0 };
+    const w2: W2 = { ...SAMPLE_W2, wages: 48_475 + 15_750, federalIncomeTaxWithheld: 0 };
     const r = computeReturn(makeInput({ w2 }));
     expect(r.taxableIncome).toBe(48_475);
     expect(r.tax).toBe(5_579);
@@ -211,7 +211,7 @@ describe('tax bracket calculations', () => {
     //  36550 @ 12% = 4386.00
     //  11525 @ 22% = 2535.50
     //  total = 8114.00 → 8114
-    const w2: W2 = { ...SAMPLE_W2, wages: 60_000 + 15_000, federalIncomeTaxWithheld: 0 };
+    const w2: W2 = { ...SAMPLE_W2, wages: 60_000 + 15_750, federalIncomeTaxWithheld: 0 };
     const r = computeReturn(makeInput({ w2 }));
     expect(r.taxableIncome).toBe(60_000);
     expect(r.tax).toBe(8_114);
@@ -223,7 +223,7 @@ describe('tax bracket calculations', () => {
     //  73100 @ 12% = 8772.00
     //  3050 @ 22% = 671.00
     //  total = 11828.00 → 11828
-    const w2: W2 = { ...SAMPLE_W2, wages: 100_000 + 30_000, federalIncomeTaxWithheld: 0 };
+    const w2: W2 = { ...SAMPLE_W2, wages: 100_000 + 31_500, federalIncomeTaxWithheld: 0 };
     const r = computeReturn(makeInput({ filingStatus: 'married_filing_jointly', w2 }));
     expect(r.taxableIncome).toBe(100_000);
     expect(r.tax).toBe(11_828);
@@ -234,7 +234,7 @@ describe('tax bracket calculations', () => {
     //  17000 @ 10% = 1700.00
     //  13000 @ 12% = 1560.00
     //  total = 3260.00 → 3260
-    const w2: W2 = { ...SAMPLE_W2, wages: 30_000 + 22_500, federalIncomeTaxWithheld: 0 };
+    const w2: W2 = { ...SAMPLE_W2, wages: 30_000 + 23_625, federalIncomeTaxWithheld: 0 };
     const r = computeReturn(makeInput({ filingStatus: 'head_of_household', w2 }));
     expect(r.taxableIncome).toBe(30_000);
     expect(r.tax).toBe(3_260);
@@ -257,9 +257,9 @@ describe('dependent credit', () => {
   });
 
   it('CTC reduces tax, not below zero', () => {
-    // With sample W-2 wages, tax is 3317. 2 dependents = 4000 credit, tax after credits = 0.
+    // With sample W-2 wages, tax is 3227. 2 dependents = 4000 credit, tax after credits = 0.
     const r = computeReturn(makeInput({ dependents: 2 }));
-    expect(r.tax).toBe(3_317);
+    expect(r.tax).toBe(3_227);
     expect(r.dependentCredit).toBe(4_000);
     expect(r.taxAfterCredits).toBe(0);
     expect(r.totalTax).toBe(0);
@@ -286,19 +286,19 @@ describe('refund vs amount owed', () => {
 
   it('amount owed when withholding < tax', () => {
     const w2: W2 = { ...SAMPLE_W2, wages: 100_000, federalIncomeTaxWithheld: 1_000 };
-    // wages = 100000, std = 15000, taxable = 85000
-    // tax on 85000: 11925 @ 10% + 36550 @ 12% + 36525 @ 22%
-    // = 1192.50 + 4386.00 + 8035.50 = 13614.00 → 13614
-    // withholding = 1000, owed = 12614
+    // wages = 100000, std = 15750, taxable = 84250
+    // tax on 84250: 11925 @ 10% + 36550 @ 12% + 35775 @ 22%
+    // = 1192.50 + 4386.00 + 7870.50 = 13449.00 → 13449
+    // withholding = 1000, owed = 12449
     const r = computeReturn(makeInput({ w2 }));
     expect(r.amountOwed).toBeGreaterThan(0);
     expect(r.refund).toBe(0);
-    expect(r.amountOwed).toBe(12_614);
+    expect(r.amountOwed).toBe(12_449);
   });
 
   it('zero refund and zero owed when exact match', () => {
     // taxable = 20000, tax = 2162 (as computed above)
-    const w2: W2 = { ...SAMPLE_W2, wages: 35_000, federalIncomeTaxWithheld: 2_162 };
+    const w2: W2 = { ...SAMPLE_W2, wages: 35_750, federalIncomeTaxWithheld: 2_162 };
     const r = computeReturn(makeInput({ w2 }));
     expect(r.tax).toBe(2_162);
     expect(r.withholding).toBe(2_162);

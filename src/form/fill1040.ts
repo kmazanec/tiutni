@@ -11,8 +11,8 @@
  * (e.g. `topmostSubform[0].Page1[0].f1_47[0]` is line 1a). The mapping in
  * FIELD_MAP was derived and verified by filling the form and visually
  * confirming every value lands on the correct line (single filer, sample W-2:
- * 1a/9/11=44,629, 12=15,000, 15=29,629, 16=3,317, 24=3,317, 25a=7,632, 34/35a
- * refund=4,315). pdf-lib drops the unsupported XFA layer (harmless for our
+ * 1a/9/11=44,629, 12=15,750, 15=28,879, 16=3,227, 24=3,227, 25a=7,632, 34/35a
+ * refund=4,405). pdf-lib drops the unsupported XFA layer (harmless for our
  * flat-fill use).
  *
  * If the template can't be loaded for any reason, we fall back to a clean

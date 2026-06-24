@@ -39,12 +39,12 @@ describe('agent loop — LLM-driven, code-enforced rails', () => {
     const t3 = stubLlm([
       { tools: [{ name: 'set_dependents', args: { count: 0 } }] },
       { tools: [{ name: 'compute_and_finalize_return' }] },
-      { text: "All done! You're getting a refund of $4,315. You can download your completed 1040 now." },
+      { text: "All done! You're getting a refund of $4,405. You can download your completed 1040 now." },
     ]);
     const done = await runAgentTurn(s, t3, 'none');
     expect(done.done).toBe(true);
     expect(s.completed).toBe(true);
-    expect(s.form1040?.refund).toBe(4315);
+    expect(s.form1040?.refund).toBe(4405);
     // Budget respected.
     expect(s.questionsAsked).toBeLessThanOrEqual(5);
   });
