@@ -1,0 +1,9 @@
+node_modules
+dist
+.git
+.corellia
+.cookbook-memory
+.claude
+*.log
+Sample-W2.pdf
+tmp-out
