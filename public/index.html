@@ -28,6 +28,9 @@
       .ev .t { opacity: .6; }
       #download { display: none; margin: 0 16px 12px; }
       a.dl { display: inline-block; padding: 8px 14px; background: #16a34a; color: #fff; text-decoration: none; border-radius: 8px; }
+      #uploadbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; padding: 8px 16px; border-top: 1px solid #8884; font-size: 13px; }
+      #uploadbar .lbl { opacity: .7; }
+      #uploadbar input[type=file] { font: inherit; max-width: 200px; }
     </style>
   </head>
   <body>
@@ -35,6 +38,12 @@
     <section id="chat">
       <div id="log"></div>
       <div id="download"><a class="dl" id="dl" href="#">⬇ Download your completed 1040</a></div>
+      <div id="uploadbar">
+        <span class="lbl">W-2 PDF:</span>
+        <input type="file" id="w2file" accept=".pdf,application/pdf" />
+        <button type="button" id="uploadBtn">Upload</button>
+        <button type="button" id="sampleBtn">Try the sample PDF</button>
+      </div>
       <form id="composer">
         <input id="input" autocomplete="off" placeholder="Say hi to get started…" />
         <button type="submit">Send</button>

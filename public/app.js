@@ -72,4 +72,36 @@ form.addEventListener('submit', async (e) => {
   else bubble('agent', `⚠ ${data.error ?? 'something went wrong'}`);
 });
 
+// ── W-2 PDF upload ──────────────────────────────────────────────────────────
+const fileInput = document.getElementById('w2file');
+const uploadBtn = document.getElementById('uploadBtn');
+const sampleBtn = document.getElementById('sampleBtn');
+
+async function uploadPdf(bytes, filename) {
+  if (!sessionId) return;
+  bubble('user', `📄 ${filename}`);
+  const res = await fetch(`/api/session/${sessionId}/upload`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/pdf' },
+    body: bytes,
+  });
+  const data = await res.json();
+  if (res.ok) handleTurn(data);
+  else bubble('agent', `⚠ ${data.error ?? 'upload failed'}`);
+}
+
+uploadBtn.addEventListener('click', async () => {
+  const file = fileInput.files && fileInput.files[0];
+  if (!file) { bubble('agent', 'Pick a PDF first, then click Upload.'); return; }
+  const buf = await file.arrayBuffer();
+  await uploadPdf(buf, file.name);
+  fileInput.value = '';
+});
+
+sampleBtn.addEventListener('click', async () => {
+  const res = await fetch('/sample-w2.pdf');
+  const buf = await res.arrayBuffer();
+  await uploadPdf(buf, 'Sample-W2.pdf');
+});
+
 start();
