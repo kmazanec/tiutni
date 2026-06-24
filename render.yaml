@@ -1,6 +1,7 @@
 # Render blueprint — deploys the tax-filing assistant as a Docker web service
-# on the free tier. The app needs no secrets to run (the LLM is optional and
-# only adds conversational warmth); set OPENROUTER_API_KEY to enable it.
+# on the free tier. The conversational agent is LLM-driven and REQUIRES an
+# OpenRouter key: set OPENROUTER_API_KEY in the Render dashboard
+# (Environment → Add Environment Variable). The server won't start without it.
 services:
   - type: web
     name: tiutni-tax-assistant
@@ -11,6 +12,10 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      # Optional: set in the Render dashboard to enable LLM-phrased warmth.
-      # - key: OPENROUTER_API_KEY
-      #   sync: false
+      # Required — set the value in the Render dashboard (sync:false keeps the
+      # secret out of this file). The agent's whole conversation runs on this.
+      - key: OPENROUTER_API_KEY
+        sync: false
+      # Optional — pin a model id (defaults to deepseek/deepseek-v4-pro).
+      # - key: TIUTNI_MODEL
+      #   value: anthropic/claude-haiku-latest

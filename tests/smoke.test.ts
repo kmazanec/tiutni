@@ -1,10 +1,11 @@
 import { describe, it, expect } from 'vitest';
 import { createApp } from '../src/server/index.js';
 import { SAMPLE_W2 } from '../src/fixtures/sample-w2.js';
+import { stubLlm } from './helpers/stub-llm.js';
 
 describe('scaffold smoke', () => {
-  it('builds an app and exposes health', async () => {
-    const app = createApp();
+  it('builds an app (with an injected LLM) and exposes health', async () => {
+    const app = createApp(stubLlm([{ text: 'hi' }]));
     expect(app).toBeDefined();
   });
 
