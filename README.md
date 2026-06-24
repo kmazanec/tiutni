@@ -21,27 +21,30 @@ download the completed return — which is the **actual official IRS 2025 Form
 
 ## One-command local run
 
+The conversational agent is **LLM-driven** and needs an OpenRouter key:
+
 ```bash
+cp .env.example .env        # then put your OPENROUTER_API_KEY in .env
 npm install && npm run dev
 # open http://localhost:3000
 ```
 
-No API key required — the assistant runs entirely on its deterministic engine.
-(An `OPENROUTER_API_KEY` is *optional*; it only adds LLM-phrased warmth.)
+Get a key at https://openrouter.ai/keys. The model defaults to
+`deepseek/deepseek-v4-pro`; override with `TIUTNI_MODEL` in `.env`.
 
-To try it without the browser:
+The test suite needs **no key** — the agent loop is tested against a stubbed LLM:
 
 ```bash
-npm install && npm test     # 120 tests: engine, W-2, guardrails, orchestrator, PDF
+npm install && npm test     # 123 tests: agent loop, engine, W-2, guardrails, PDF
 ```
 
 ## The four pillars (where to point in the code)
 
 | Pillar | Where | What's enforced |
 |---|---|---|
-| **Chat loop / state** | `src/agent/orchestrator.ts`, `src/server/sessions.ts` | An explicit `phase` state machine + per-session slots carried across turns. |
-| **Tools** | `src/tax/w2.ts`, `src/tax/w2pdf.ts`, `src/tax/engine.ts`, `src/form/fill1040.ts` | Real actions: parse a W-2 from pasted text **or an uploaded PDF**, validate it, compute the return, and fill the **official IRS 1040 PDF**. |
-| **Guardrails** | `src/agent/guardrails.ts` | **Code-enforced:** hard 5-question counter; advice/off-topic redirect; W-2 range+schema validation; standing "no advice, not filed" refusal. |
+| **Chat loop / state** | `src/agent/agent.ts`, `src/agent/llm.ts`, `src/server/sessions.ts` | A real **LLM tool-calling agent** — the model reasons over the transcript and calls tools; state carried per-session across turns. |
+| **Tools** | `src/agent/tools.ts` (+ `src/tax/`, `src/form/`) | Real actions the LLM **calls**: load/parse a W-2, set filing status & dependents, compute the return, and fill the **official IRS 1040 PDF**. The LLM never does math or writes the PDF — it triggers the deterministic tools. |
+| **Guardrails** | `src/agent/tools.ts` (validation) + `src/agent/guardrails.ts` + `src/agent/agent.ts` (budget) | **Code-enforced around the LLM:** hard 5-question counter the model can't exceed; tool-input validation at the boundary; advice/off-topic redirect before any LLM turn; "no advice, not filed" stance. |
 | **Observation** | `src/observe/trace.ts` + the UI panel | Append-only per-session trace of every turn, tool call, guardrail decision, and computed line — shown live in the right-hand panel and mirrored to logs. |
 
 ## How it was built
@@ -54,9 +57,10 @@ tasks, written into an isolated worktree, and verified by its own tests. See
 ## Architecture (one breath)
 
 `public/` (minimal chat UI) → `src/server/` (Express routes, in-memory sessions)
-→ `src/agent/orchestrator.ts` (the chat loop) → tools in `src/tax/` + `src/form/`
-→ everything records into `src/observe/trace.ts`. The domain contract that holds
-it together is `src/domain/types.ts`.
+→ `src/agent/agent.ts` (the LLM tool-calling loop) → `src/agent/tools.ts` →
+the deterministic tools in `src/tax/` + `src/form/` → everything records into
+`src/observe/trace.ts`. The domain contract that holds it together is
+`src/domain/types.ts`.
 
 ## Deploy
 
