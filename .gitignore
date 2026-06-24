@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.local
+*.log
+
+# Corellia autonomous build worktrees (never commit these)
+.corellia/
+.claude/worktrees/
+
+# OS cruft
+.DS_Store
+
+# Generated 1040 PDFs from runtime sessions
+/tmp-out/
