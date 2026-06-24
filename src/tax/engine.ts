@@ -15,14 +15,14 @@ import type { ReturnInput, Form1040, FilingStatus } from '../domain/types.js';
 
 /** 2025 standard deduction by filing status. */
 const STANDARD_DEDUCTION: Record<FilingStatus, number> = {
-  single: 15_000,
-  married_filing_jointly: 30_000,
-  married_filing_separately: 15_000,
-  head_of_household: 22_500,
+  single: 15_750,
+  married_filing_jointly: 31_500,
+  married_filing_separately: 15_750,
+  head_of_household: 23_625,
 };
 
-/** 2025 standard deduction for a dependent: greater of $1,300 or earned income + $450, capped at the normal deduction. */
-const DEPENDENT_MIN_STD = 1_300;
+/** 2025 standard deduction for a dependent: greater of $1,350 or earned income + $450, capped at the normal deduction. */
+const DEPENDENT_MIN_STD = 1_350;
 const DEPENDENT_EARNED_ADD = 450;
 
 // ---------------------------------------------------------------------------
@@ -127,7 +127,7 @@ export function computeReturn(input: ReturnInput): Form1040 {
   const normalStd = STANDARD_DEDUCTION[filingStatus];
   let standardDeduction: number;
   if (profile.canBeClaimedAsDependent) {
-    // Dependent standard deduction = greater of $1,300 or earned income + $450, capped at the normal deduction.
+    // Dependent standard deduction = greater of $1,350 or earned income + $450, capped at the normal deduction.
     const dependentLimit = Math.max(DEPENDENT_MIN_STD, wages + DEPENDENT_EARNED_ADD);
     standardDeduction = Math.min(dependentLimit, normalStd);
   } else {
