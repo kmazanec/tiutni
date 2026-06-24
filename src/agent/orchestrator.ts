@@ -17,7 +17,7 @@
  */
 
 import type { Session } from '../server/sessions.js';
-import type { FilingStatus } from '../domain/types.js';
+import type { FilingStatus, W2 } from '../domain/types.js';
 import { SAMPLE_W2 } from '../fixtures/sample-w2.js';
 import { parseW2, validateW2 } from '../tax/w2.js';
 import { computeReturn } from '../tax/engine.js';
@@ -102,25 +102,53 @@ function handleW2(session: Session, message: string): OrchestratorTurn {
   const lower = message.toLowerCase();
   const wantsSample = /sample|example|test|demo|use (the|your)/.test(lower);
 
-  let w2 = wantsSample ? SAMPLE_W2 : parseW2(message, session.trace);
+  const w2 = wantsSample ? SAMPLE_W2 : parseW2(message, session.trace);
 
   if (!w2) {
     // Couldn't parse — recover gracefully without spending a new question.
     session.trace.record('guardrail', 'W-2 not parseable; asking to re-paste or use sample');
     return say(
       session,
-      "I couldn't quite read that W-2. No worries — you can paste it again with the box numbers " +
-        '(e.g. "Box 1: 44629.35", "Box 2: 7631.62"), or just say **"use the sample"** to try it with test data.',
+      "I couldn't quite read that W-2. No worries — you can **upload the PDF**, paste it again with the box " +
+        'numbers (e.g. "Box 1: 44629.35", "Box 2: 7631.62"), or just say **"use the sample"** to try it with test data.',
     );
   }
 
+  return acceptW2(session, w2);
+}
+
+/**
+ * Entry point for a W-2 that arrived as an uploaded PDF (via the upload route).
+ * The route has already extracted the W2 shape with parseW2Pdf; here we run the
+ * same validate → accept → advance path the pasted/sample flow uses, so an
+ * uploaded W-2 behaves identically to a pasted one. Returns a re-prompt turn if
+ * extraction failed (w2 is null).
+ */
+export function handleUploadedW2(session: Session, w2: W2 | null): OrchestratorTurn {
+  if (!w2) {
+    session.trace.record('guardrail', 'W-2 PDF not parseable; asking to paste or use sample');
+    return say(
+      session,
+      "I couldn't read a W-2 out of that PDF. You can try a different file, paste the figures " +
+        '(e.g. "Box 1: 44629.35", "Box 2: 7631.62"), or say **"use the sample"** to continue with test data.',
+    );
+  }
+  // An upload is only meaningful while we're still waiting for the W-2.
+  if (session.phase && session.phase !== 'greeting' && session.phase !== 'await_w2') {
+    return say(session, "Thanks, but I've already got your W-2 — let's keep going from here.");
+  }
+  return acceptW2(session, w2);
+}
+
+/** Shared validate → accept → advance-to-status logic for any W-2 source. */
+function acceptW2(session: Session, w2: W2): OrchestratorTurn {
   const validation = validateW2(w2, session.trace);
   if (!validation.ok) {
     session.trace.record('guardrail', 'W-2 failed validation', { errors: validation.errors });
     return say(
       session,
       `That W-2 has a problem I should flag before we go on: ${validation.errors.join(' ')} ` +
-        'Could you double-check and paste it again, or say **"use the sample"**?',
+        'Could you double-check and upload or paste it again, or say **"use the sample"**?',
     );
   }
 

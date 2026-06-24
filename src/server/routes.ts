@@ -10,10 +10,14 @@
  * logic lives in the orchestrator module.
  */
 
-import type { Express, Request, Response } from 'express';
+import express, { type Express, type Request, type Response } from 'express';
 import type { SessionStore, Session } from './sessions.js';
-import { handleTurn, type OrchestratorTurn } from '../agent/orchestrator.js';
+import { handleTurn, handleUploadedW2, type OrchestratorTurn } from '../agent/orchestrator.js';
+import { parseW2Pdf } from '../tax/w2pdf.js';
 import { renderForm1040Pdf } from '../form/fill1040.js';
+
+/** Max W-2 PDF upload size — generous for a scanned single page, bounded for safety. */
+const MAX_PDF_BYTES = 8 * 1024 * 1024;
 
 export function registerChatRoutes(app: Express, sessions: SessionStore): void {
   app.post('/api/session', async (_req, res) => {
@@ -41,6 +45,36 @@ export function registerChatRoutes(app: Express, sessions: SessionStore): void {
       res.status(500).json({ error: msg });
     }
   });
+
+  // W-2 PDF upload (Pillar 2 tool: ingest a real file). The client POSTs the raw
+  // PDF bytes with Content-Type application/pdf. We extract the W-2, run it
+  // through the same acceptance path as a pasted/sample W-2, and return a turn.
+  app.post(
+    '/api/session/:id/upload',
+    express.raw({ type: 'application/pdf', limit: MAX_PDF_BYTES }),
+    async (req: Request, res: Response) => {
+      const s = sessions.get(req.params.id ?? '');
+      if (!s) return res.status(404).json({ error: 'session not found' });
+
+      const body = req.body;
+      if (!Buffer.isBuffer(body) || body.length === 0) {
+        return res.status(400).json({ error: 'expected a non-empty application/pdf body' });
+      }
+
+      s.trace.record('user_message', `[uploaded a W-2 PDF, ${body.length} bytes]`);
+      s.trace.record('tool_call', 'parseW2Pdf: extracting W-2 from uploaded PDF', { bytes: body.length });
+
+      try {
+        const w2 = await parseW2Pdf(new Uint8Array(body), s.trace);
+        const turn = handleUploadedW2(s, w2);
+        res.json(projectTurn(turn));
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'internal error';
+        s.trace.record('guardrail', `upload failed: ${msg}`);
+        res.status(500).json({ error: msg });
+      }
+    },
+  );
 
   app.get('/api/session/:id/trace', (req, res) => {
     const s = sessions.get(req.params.id ?? '');
